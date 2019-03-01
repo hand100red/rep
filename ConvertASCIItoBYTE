@@ -1,0 +1,86 @@
+// stdafx.h
+#pragma once
+
+#include "targetver.h"
+
+#include <windows.h>
+#include <stdio.h>
+#include <tchar.h>
+
+// ★Add Start for Debug ==================================================
+// Win32アプリケーションのデバッグ方法[VC++の使い方]
+// http://www.nitoyon.com/vc/tutorial/debug/win32.htm
+#if defined(_DEBUG) || defined(DEBUG)
+// Debugのとき
+//		TRACE
+#define TRACE(x)   OutputDebugString(x)
+#define TRACE0(x)   OutputDebugString(x)
+#define TRACE1(x, a)            MyOutputDebugString(x, a)
+#define TRACE2(x, a, b)         MyOutputDebugString(x, a, b)
+#define TRACE3(x, a, b, c)      MyOutputDebugString(x, a, b, c)
+#define TRACE4(x, a, b, c, d)   MyOutputDebugString(x, a, b, c, d)
+//		ASSERT
+#define ASSERT(x) \
+	if (!(x)) { \
+		MyOutputDebugString("Assertion failed! in %s (%d)\n", \
+			__FILE__, __LINE__); \
+		DebugBreak(); \
+	}
+#define VERIFY(x)   ASSERT(x)
+#else
+// Releaseのとき
+//		TRACE
+#define TRACE(x)
+#define TRACE0(x)
+#define TRACE1(x, a)
+#define TRACE2(x, a, b)
+#define TRACE3(x, a, b, c)
+#define TRACE4(x, a, b, c, d)
+//		ASSERT
+#define ASSERT(x)
+#define VERIFY(x)   x
+#endif
+void MyOutputDebugString(LPCSTR pszFormat, ...)
+{
+	va_list	argp;
+	char pszBuf[256];
+	va_start(argp, pszFormat);
+//	vsprintf(pszBuf, pszFormat, argp);	// 重大度レベル	コード	説明	プロジェクト	ファイル	行	抑制状態	【エラー	C4996	'vsprintf': This function or variable may be unsafe.Consider using vsprintf_s instead.To disable deprecation, use _CRT_SECURE_NO_WARNINGS.See online help for details.ConsoleApplicationCheck	略】
+	vsprintf_s(pszBuf, pszFormat, argp);
+
+	va_end(argp);
+	OutputDebugString(pszBuf);
+}
+// ★Add End for Debug ==================================================
+
+
+
+CTest.cpp
+#include "stdafx.h"
+#include <atlstr.h>	// CString
+
+void CTest::ConvertASCIItoBYTE()
+{
+	CString strWork(_T(""));
+//	CString strAscii = "!!!!!!!!!!!!!";
+//	CString strAscii = "1234567890ABC";
+	CString strAscii = _T(" あ　いん　௵");	// 全角(Shift-JIS)やUnicode(UTF-8)使っても、sscanf_sのバッファが1でも落ちないが。ASCII外(0x80以降)の文字は制御文字になって表示できないことがある
+	CString cChar;
+	BYTE byAscii;
+
+	TRACE(_T("\n\n\n"));
+	TRACE(_T("strAscii:")); TRACE(strAscii);	TRACE(_T("\n\n"));
+
+	for(size_t i=0;i<13;++i)
+	{
+		strWork.Format(_T("%d"), i);				TRACE(_T("index   :") + strWork + _T("\n"));
+		cChar = strAscii.Mid(i, 1);					TRACE(_T("cChar   :") + cChar	+ _T("\n"));
+//		sscanf_s(cChar, _T("%c"), &byAscii, 1);					// 一旦CStringに入れるパターン。こちらでもできる
+		sscanf_s(strAscii.Mid(i, 1), _T("%c"), &byAscii, 1);	// そのまま変換して入れるパターン
+//		sscanf_s(strAscii.Mid(i, 1), _T("%c"), &byAscii, 0);	// 間違った引数。バッファが0バイトなので、byAsciiに入らずCCのままで、文字はﾌのまま
+		strWork.Format(_T("%02X"), byAscii);		TRACE(_T("byAscii :") + strWork + _T("\n"));
+		strWork.Format(_T("%c"), byAscii);			TRACE(_T("cAscii  :") + strWork + _T("\n"));
+		TRACE(_T("\n"));
+	}
+	TRACE(_T("\n\n\n"));
+}
