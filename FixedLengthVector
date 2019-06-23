@@ -1,0 +1,47 @@
+
+
+//https://oshiete.goo.ne.jp/qa/6206797.html
+//http://codepad.org/8hulLhv8
+
+//#include <stdio.h>
+#include <vector>
+using namespace std;
+
+//typedef {oldtype} {newtype};
+//C++ではusing {newtype} = {oldtype};
+
+typedef unsigned char BYTE;
+//typedef BYTE[8] arrayCANdata;[でエラーになる
+
+struct st_by8 {
+    BYTE data[8];
+};
+
+int main()
+{
+    BYTE by8[8];
+//    vector<BYTE[8]> vec_by8;Outputにエラーがずらっと
+
+    vector<st_by8> vec_by8;
+//    vec_by8.push_back(by8);
+//error: no matching function for call to '__gnu_debug_def::vector<st_by8, std::allocator<st_by8> >::push_back(BYTE [8])'
+//compilation terminated due to -Wfatal-errors.
+
+    st_by8 st_by;
+    for(int i=0;i<8;++i)
+    {
+        //BYTE[8]の先頭のポインタは、*st_by.data    ？
+        st_by.data[0] = i;
+    }
+
+    vec_by8.push_back(st_by);
+
+
+
+
+    double d = 0.3;
+    d = d + 0.0000005;
+    printf("%.17f",d); // 標準出力
+
+    return 0;
+}
